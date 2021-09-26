@@ -13,7 +13,9 @@
             {{ nameCity }}
           </div>
           <div class="date-weather-current d-flex justify-content-center">
-            {{ getWeekDays(weatherCurrent.dt)+", "+getDate(weatherCurrent.dt) }}
+            {{
+              getWeekDays(weatherCurrent.dt) + ", " + getDate(weatherCurrent.dt)
+            }}
           </div>
           <div class="icon-weather-current d-flex justify-content-center">
             <img
@@ -40,7 +42,15 @@
         </div>
       </div>
       <div class="row row-weather-day">
-        <weather-day v-for="(item,index) of weatherWeeks"  v-bind:key="index" v-bind:date="getDate(item.dt)" v-bind:description="item.weather[0].description" v-bind:icon="item.weather[0].icon" v-bind:temp="mathRound(item.temp.day)" v-bind:week=" getWeekDays(item.dt)"></weather-day>
+        <weather-day
+          v-for="(item, index) of weatherWeeks"
+          v-bind:key="index"
+          v-bind:date="getDate(item.dt)"
+          v-bind:description="item.weather[0].description"
+          v-bind:icon="item.weather[0].icon"
+          v-bind:temp="mathRound(item.temp.day)"
+          v-bind:week="getWeekDays(item.dt)"
+        ></weather-day>
       </div>
     </div>
   </div>
@@ -57,7 +67,7 @@ export default {
     const lon = 0;
     const nameCity = "";
     const weatherCurrent = {};
-    const weatherWeeks = []
+    const weatherWeeks = [];
     return {
       lat,
       lon,
@@ -73,12 +83,32 @@ export default {
   methods: {
     getLocation() {
       if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-          this.lat = position.coords.latitude;
-          this.lon = position.coords.longitude;
-          this.getWeatherWeeks(this.lat, this.lon);
-          this.getCityName(this.lat, this.lon);
-        });
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            this.lat = position.coords.latitude;
+            this.lon = position.coords.longitude;
+            this.getWeatherWeeks(this.lat, this.lon);
+            this.getCityName(this.lat, this.lon);
+          },
+          (error) => {
+            this.$toast.error("Đây không phải vị trí của bạn, xin hãy cấp quyền vị trí...", {
+              position: "bottom-right",
+              timeout: 3048,
+              closeOnClick: true,
+              pauseOnFocusLoss: true,
+              pauseOnHover: true,
+              draggable: true,
+              draggablePercent: 0.6,
+              showCloseButtonOnHover: false,
+              hideProgressBar: true,
+              closeButton: "button",
+              icon: true,
+              rtl: false,
+            });
+            this.getWeatherWeeks(this.lat, this.lon);
+            this.getCityName(this.lat, this.lon);
+          }
+        );
       }
     },
     getWeatherWeeks(lat, lon) {
@@ -88,8 +118,9 @@ export default {
           url: `/data/2.5/onecall?&exclude=current,minutely,hourly&appid=a5baaf83acd61ead8f2b525537740766&units=metric&lang=vi&lat=${lat}&lon=${lon}`,
         });
         this.weatherCurrent = res.data.daily[0];
-        this.weatherWeeks = res.data.daily.filter((item,index)=>index != 0 && index != 7)
-        console.log(this.weatherWeeks);
+        this.weatherWeeks = res.data.daily.filter(
+          (item, index) => index != 0 && index != 7
+        );
       };
       call();
     },
@@ -111,7 +142,7 @@ export default {
     getLocationByNameCity(nameCity) {
       axios
         .get(
-          `http://api.openweathermap.org/geo/1.0/direct?appid=a5baaf83acd61ead8f2b525537740766&q=${nameCity}`
+          `https://api.openweathermap.org/geo/1.0/direct?appid=a5baaf83acd61ead8f2b525537740766&q=${nameCity}`
         )
         .then((res) => {
           if (res.data[0]) {
